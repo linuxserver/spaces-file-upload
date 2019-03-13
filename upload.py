@@ -31,6 +31,8 @@ def check_env():
         global spaces_secret
         global file_name
         global destination
+        global mimetype
+        mimetype = os.environ["MIMETYPE"]
         destination = os.environ["DESTINATION"]
         file_name = os.environ["FILE_NAME"]
         spaces_key = os.environ["ACCESS_KEY"]
@@ -53,7 +55,7 @@ def blob_upload():
             '/mnt/' + file_name,
             bucket,
             destination,
-            ExtraArgs={'ContentType': "application/gzip", 'ACL': "public-read"})
+            ExtraArgs={'ContentType': mimetype, 'ACL': "public-read"})
     except Exception as error:
         core_fail('Upload Error ' + str(error))
 
