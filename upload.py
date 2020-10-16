@@ -22,7 +22,7 @@ def core_fail(message):
 global region
 global bucket
 region = 'us-east-1'
-bucket = 'ci-tests'
+bucket = 'ci-tests.linuxserver.io'
 
 # Make sure all needed env variables are set
 def check_env():
