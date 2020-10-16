@@ -21,22 +21,22 @@ def core_fail(message):
 
 global region
 global bucket
-region = 'ams3'
-bucket = 'lsio-ci'
+region = 'us-east-1'
+bucket = 'ci-tests'
 
 # Make sure all needed env variables are set
 def check_env():
     try:
-        global spaces_key
-        global spaces_secret
+        global S3_key
+        global S3_secret
         global file_name
         global destination
         global mimetype
         mimetype = os.environ["MIMETYPE"]
         destination = os.environ["DESTINATION"]
         file_name = os.environ["FILE_NAME"]
-        spaces_key = os.environ["ACCESS_KEY"]
-        spaces_secret = os.environ["SECRET_KEY"]
+        S3_key = os.environ["ACCESS_KEY"]
+        S3_secret = os.environ["SECRET_KEY"]
     except KeyError as error:
         core_fail(str(error) + ' is not set in ENV')
 
@@ -46,9 +46,8 @@ def blob_upload():
     spaces = session.client(
         's3',
         region_name=region,
-        endpoint_url='https://' + region + '.digitaloceanspaces.com',
-        aws_access_key_id=spaces_key,
-        aws_secret_access_key=spaces_secret)
+        aws_access_key_id=S3_key,
+        aws_secret_access_key=S3_secret)
     # File upload
     try:
         spaces.upload_file(
