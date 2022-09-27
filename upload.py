@@ -1,65 +1,34 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import boto3
-import sys
-session = boto3.session.Session()
+from boto3.exceptions import S3UploadFailedError
+from botocore.exceptions import ClientError
 
-
-#############
-# Functions #
-#############
-
-# If the upload cannot even be run just fail the job
-def core_fail(message):
-    print(message)
-    sys.exit(1)
-
-#############
-# Variables #
-#############
-
-global region
-global bucket
-region = 'us-east-1'
-bucket = 'ci-tests.linuxserver.io'
-
-# Make sure all needed env variables are set
-def check_env():
+def file_upload():
+    """Upload file to S3 bucket"""
+    print('Uploading File')        
     try:
-        global S3_key
-        global S3_secret
-        global file_name
-        global destination
-        global mimetype
+        s3_client.upload_file(
+            f'/mnt/{file_name}',
+            bucket,
+            destination,
+            ExtraArgs={'ContentType': mimetype, 'ACL': "public-read"})
+    except (S3UploadFailedError, ClientError, Exception) as error:
+        print(f'Upload Error {error}')
+        raise error from error
+    
+if __name__ == '__main__':
+    try:
         mimetype = os.environ["MIMETYPE"]
         destination = os.environ["DESTINATION"]
         file_name = os.environ["FILE_NAME"]
         S3_key = os.environ["ACCESS_KEY"]
-        S3_secret = os.environ["SECRET_KEY"]
+        S3_secret = os.environ["SECRET_KEY"]  
     except KeyError as error:
-        core_fail(str(error) + ' is not set in ENV')
-
-# Upload blob to DO Spaces
-def blob_upload():
-    print('Uploading File')
-    spaces = session.client(
-        's3',
-        region_name=region,
-        aws_access_key_id=S3_key,
-        aws_secret_access_key=S3_secret)
-    # File upload
-    try:
-        spaces.upload_file(
-            '/mnt/' + file_name,
-            bucket,
-            destination,
-            ExtraArgs={'ContentType': mimetype, 'ACL': "public-read"})
-    except Exception as error:
-        core_fail('Upload Error ' + str(error))
-
-##############
-# Main Logic #
-##############
-check_env()
-blob_upload()
+        print(f'{error} is not set in ENV')
+        raise error
+    region = os.environ.get('S3_REGION', 'us-east-1')
+    bucket = os.environ.get('S3_BUCKET', 'ci-tests.linuxserver.io')
+    s3_client = boto3.Session().client('s3',region_name=region,aws_access_key_id=S3_key,aws_secret_access_key=S3_secret)
+    file_upload()
