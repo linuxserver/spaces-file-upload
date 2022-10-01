@@ -14,6 +14,7 @@ def file_upload():
             bucket,
             destination,
             ExtraArgs={'ContentType': mimetype, 'ACL': "public-read"})
+        print(f'Uploading "{file_name}" finished')
     except (S3UploadFailedError, ClientError, Exception) as error:
         print(f'Upload Error {error}')
         raise error from error
